@@ -7,9 +7,17 @@ Param(
  
 $version = $env:OctopusVersion
 $msiFileName = "$($Msi).$($version)-x64.msi"
-$downloadUrl = "https://download.octopusdeploy.com/octopus/" + $msiFileName
-#$downloadUrlLatest = "https://octopusdeploy.com/downloads/latest/OctopusTentacle"
-#http://octopusdeploy.com/downloads/latest/OctopusTentacle
+
+if ($version -eq 'latest') 
+{
+  $downloadUrl = 'https://octopus.com/downloads/latest/WindowsX64/OctopusServer'
+} 
+else 
+{
+  $downloadUrl = "https://download.octopusdeploy.com/octopus/" + $msiFileName
+  #$downloadUrlLatest = "https://octopusdeploy.com/downloads/latest/OctopusTentacle"
+  #http://octopusdeploy.com/downloads/latest/OctopusTentacle
+}
 
 $installBasePath = "C:\Install\"
 $installersPath = "C:\Installers\"
@@ -53,7 +61,11 @@ function Stage-Installer {
 			Write-Log "No version specified for install. Using latest";
 		}
 		Write-Log "Downloading installer '$downloadUrl' to '$msiPath' ..."
-		(New-Object Net.WebClient).DownloadFile($downloadUrl, $msiPath)
+    $SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol
+    [System.Net.ServicePointManager]::SecurityProtocol = @("Tls12","Tls11","Tls","Ssl3")
+		Invoke-WebRequest -URI $downloadUrl -OutFile $msiPath
+    [System.Net.ServicePointManager]::SecurityProtocol = $SecurityProtocol
+    #(New-Object Net.WebClient).DownloadFile($downloadUrl, $msiPath)
 		Write-Log "done."
 	}
 }
